@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const mongoose = require('mongoose');
 
 // morgan set the log information, give the api path, status, etc
 // something like this GET /questions/123/answers 200 3.624 ms - 32
@@ -8,6 +9,7 @@ const morgan = require('morgan');
 // body-parser extract the entire body portion of an incoming request stream and exposes it on req.body.
 const bodyParser = require('body-parser');
 
+
 const questionRouter = require('./routers/question');
 
 const port = process.env.PORT || 3000;
@@ -15,8 +17,25 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(morgan('dev'));
 
-app.use('/questions', questionRouter);
+mongoose.connect('mongodb://localhost:27017/qa', 
+{
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
+// mongoose.Promise = global.Promise; // This might not needed after mongoose 5
+
+const db = mongoose.connection;
+
+db.on('error', () => {
+  console.log('db connection successful');
+})
+
+db.once('open', () => {
+  console.log('db connection successful');
+})
+
+app.use('/questions', questionRouter);
 
 // We want to handle error here if command reach here
 app.use((req, res, next) => {
